@@ -5,7 +5,6 @@ cryptography==3.1
 decorator==4.4.2
 idna==2.10
 letterboxd==0.3.0
-pkg-resources==0.0.0
 pycparser==2.20
 python-dotenv==0.14.0
 python-telegram-bot==12.8
