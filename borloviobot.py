@@ -24,7 +24,7 @@ elif mode == 'prod':
         PORT = int(os.environ.get('PORT', 8443))
         HEROKU_APP_NAME = os.environ.get('KEROKU_APP_NAME')
         updater.start_webhook(
-            lister='0.0.0.0',
+            listen='0.0.0.0',
             port=PORT,
             url_path=TOKEN
             )
