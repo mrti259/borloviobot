@@ -3,7 +3,6 @@ import os
 import dotenv
 import logging
 import sys
-from flask import Flask
 
 # Enabling logging
 logging.basicConfig(level=logging.INFO,
