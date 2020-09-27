@@ -1,8 +1,9 @@
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import os
 import dotenv
 import logging
 import sys
+from flask import Flask
 
 # Enabling logging
 logging.basicConfig(level=logging.INFO,
@@ -13,7 +14,7 @@ logger = logging.getLogger()
 dotenv.load_dotenv()
 mode = os.environ.get('MODE')
 TOKEN = os.environ.get('TOKEN')
-
+print(mode)
 # Choosing mode
 if mode == 'dev':
     def run(updater):
@@ -22,7 +23,7 @@ if mode == 'dev':
 elif mode == 'prod':
     def run(updater):
         PORT = int(os.environ.get('PORT', 8443))
-        HEROKU_APP_NAME = os.environ.get('KEROKU_APP_NAME')
+        HEROKU_APP_NAME = os.environ.get('HEROKU_APP_NAME')
         updater.start_webhook(
             listen='0.0.0.0',
             port=PORT,
@@ -54,11 +55,16 @@ def viste(update, context):
         reply = f'No, Bor no vio _{film}_'
     update.message.reply_markdown_v2(reply)
 
-# Starting
+def error(update, context):
+    update.message.reply_text('Sorry pero asi no entiendo')
 
-if __name__ == '__main__':
+def main():
     logger.info('Starting bot')
     updater = Updater(TOKEN, use_context=True)
     updater.dispatcher.add_handler(CommandHandler('start', start))
     updater.dispatcher.add_handler(CommandHandler('viste', viste))
+    updater.dispatcher.add_handler(MessageHandler(Filters.text, error))
     run(updater)
+
+if __name__ == '__main__':
+    main()
