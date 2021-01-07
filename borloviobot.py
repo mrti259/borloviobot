@@ -1,20 +1,21 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, InlineQueryHandler
 import os
 import dotenv
 import logging
 import sys
+from commands import VISTE
 
-# Enabling logging
+# Enable log
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
-# Getting dotenv var
+# Getting env vars
 dotenv.load_dotenv()
 mode = os.environ.get('MODE')
 TOKEN = os.environ.get('TOKEN')
-print(mode)
-# Choosing mode
+
+# Defining mode
 if mode == 'dev':
     def run(updater):
         updater.start_polling()
@@ -28,7 +29,10 @@ elif mode == 'prod':
             port=PORT,
             url_path=TOKEN
             )
-        updater.bot.set_webhook(f'https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}')
+        updater.bot.set_webhook('https://{0}.herokuapp.com/{1}'.format(
+            HEROKU_APP_NAME,
+            TOKEN
+        ))
 
 else:
     logger.error('No MODE specified!')
@@ -38,12 +42,8 @@ else:
 
 def start(update, context):
     user = update.message.from_user
-    reply = f'''\
-Hola {user['first_name']}\! Ingresa:
-`/viste` _la peli/serie_ ?
-para que pueda responderte
-'''
-    update.message.reply_markdown_v2(reply)
+    reply = "Hola, {0}! Qué querías preguntarme?".format(user['first_name'])
+    update.message.reply_text(reply)
 
 def viste(update, context):
     text = update.message['text'].title().split(' ')
@@ -51,18 +51,25 @@ def viste(update, context):
         reply = 'Pero tenes que decirme la peli/serie, lindis'
     else:
         film = ' '.join(text[1:]).replace('?', '')
-        reply = f'No, Bor no vio _{film}_'
+        reply = 'No, no vi _{0}_'.format(film)
     update.message.reply_markdown_v2(reply)
 
 def error(update, context):
     update.message.reply_text('Sorry pero asi no entiendo')
 
+def controller(update, context):
+    command = update.message['text'].split(' ')[0]
+    if VISTE.match(command):
+        viste(update, context)
+    else:
+        error(update, context)
+
+# Init
 def main():
     logger.info('Starting bot')
     updater = Updater(TOKEN, use_context=True)
     updater.dispatcher.add_handler(CommandHandler('start', start))
-    updater.dispatcher.add_handler(CommandHandler('viste', viste))
-    updater.dispatcher.add_handler(MessageHandler(Filters.text, error))
+    updater.dispatcher.add_handler(MessageHandler(Filters.text, controller))
     run(updater)
 
 if __name__ == '__main__':
